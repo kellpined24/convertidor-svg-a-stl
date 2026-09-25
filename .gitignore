@@ -15,6 +15,7 @@ dist-ssr
 .env.*
 .vercel
 secrets.local.txt
+codigos-alumnas.txt
 
 # Editor directories and files
 .vscode/*
