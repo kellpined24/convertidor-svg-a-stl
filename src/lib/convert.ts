@@ -16,6 +16,8 @@ export interface ConversionResult {
   parts: PartResult[];
   fullGeometry: THREE.BufferGeometry;
   measurements: MeasurementResult;
+  /** Tamaño real del modelo ya generado (mm), medido sobre la geometría final. */
+  modelSizeMM: { x: number; y: number; z: number };
 }
 
 /** Voltea el eje Y de una geometría y corrige el sentido de las caras (winding) para que las normales queden hacia afuera. */
@@ -151,6 +153,13 @@ export function convertSvgToStl(
     allGeoms.map((g) => g.clone()),
     false,
   )!;
+  fullGeometry.computeBoundingBox();
+  const finalBox = fullGeometry.boundingBox!;
+  const modelSizeMM = {
+    x: finalBox.max.x - finalBox.min.x,
+    y: finalBox.max.y - finalBox.min.y,
+    z: finalBox.max.z - finalBox.min.z,
+  };
 
-  return { parts: rawParts, fullGeometry, measurements };
+  return { parts: rawParts, fullGeometry, measurements, modelSizeMM };
 }
