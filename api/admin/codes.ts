@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAdminToken, verifyAdminSession } from '../lib/session';
-import { listCodes, createCode, setCodeActive, deleteCode, replaceCode } from '../lib/codes';
+import { getAdminToken, verifyAdminSession } from '../lib/session.js';
+import { listCodes, createCode, setCodeActive, deleteCode, replaceCode } from '../lib/codes.js';
 
 async function requireAdmin(req: VercelRequest, res: VercelResponse): Promise<boolean> {
   const token = getAdminToken(req.headers.cookie);

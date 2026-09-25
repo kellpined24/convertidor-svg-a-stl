@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyCode } from './lib/codes';
-import { signStudentSession, studentCookie } from './lib/session';
-import { isRateLimited, clientIp } from './lib/rateLimit';
+import { verifyCode } from './lib/codes.js';
+import { signStudentSession, studentCookie } from './lib/session.js';
+import { isRateLimited, clientIp } from './lib/rateLimit.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {

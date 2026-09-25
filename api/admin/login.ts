@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyAdminPassword } from '../lib/adminAuth';
-import { signAdminSession, adminCookie } from '../lib/session';
-import { isRateLimited, clientIp } from '../lib/rateLimit';
+import { verifyAdminPassword } from '../lib/adminAuth.js';
+import { signAdminSession, adminCookie } from '../lib/session.js';
+import { isRateLimited, clientIp } from '../lib/rateLimit.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {

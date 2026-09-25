@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createClient } from '@vercel/global-config';
-import { patchEdgeConfigItems, readAllEdgeConfigItemsFresh, type EdgeConfigItemPatch } from './edgeConfigWrite';
+import { patchEdgeConfigItems, readAllEdgeConfigItemsFresh, type EdgeConfigItemPatch } from './edgeConfigWrite.js';
 
 export interface CodeRecord {
   itemKey: string; // clave en Edge Config: code_<hmac>

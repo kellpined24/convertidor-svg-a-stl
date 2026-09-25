@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getStudentToken, verifyStudentSession, clearStudentCookie } from './lib/session';
-import { isCodeItemActive } from './lib/codes';
+import { getStudentToken, verifyStudentSession, clearStudentCookie } from './lib/session.js';
+import { isCodeItemActive } from './lib/codes.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const token = getStudentToken(req.headers.cookie);
