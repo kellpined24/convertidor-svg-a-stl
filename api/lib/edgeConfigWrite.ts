@@ -1,19 +1,19 @@
 /**
- * Escritura en Edge Config vía la API REST de Vercel.
- * (La lectura se hace con @vercel/global-config usando process.env.EDGE_CONFIG,
+ * Escritura en Global Config (antes "Edge Config") vía la API REST de Vercel.
+ * (La lectura se hace con @vercel/global-config usando process.env.GLOBAL_CONFIG,
  * que es de solo lectura y ultrarrápida; para escribir hace falta un token
  * de acceso personal de Vercel, ver README de administración.)
  */
 
 function edgeConfigIdFromConnectionString(): string {
-  const raw = process.env.EDGE_CONFIG;
+  const raw = process.env.GLOBAL_CONFIG ?? process.env.EDGE_CONFIG;
   if (!raw) {
     throw new Error(
-      'Falta la variable de entorno EDGE_CONFIG. Conecta un Edge Config al proyecto en Vercel (Storage → Create Database → Edge Config).',
+      'Falta la variable de entorno GLOBAL_CONFIG. Conecta un Global Config (Edge Config) al proyecto en Vercel (Storage → Create Database → Global Config).',
     );
   }
   const match = raw.match(/ecfg_[a-zA-Z0-9]+/);
-  if (!match) throw new Error('No se pudo leer el identificador del Edge Config desde EDGE_CONFIG.');
+  if (!match) throw new Error('No se pudo leer el identificador del Global Config desde GLOBAL_CONFIG.');
   return match[0];
 }
 

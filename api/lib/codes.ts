@@ -14,8 +14,8 @@ const ITEM_PREFIX = 'code_';
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin 0/O/1/I para evitar confusiones
 
 function getEdgeConfigClient() {
-  const raw = process.env.EDGE_CONFIG;
-  if (!raw) throw new Error('Falta la variable de entorno EDGE_CONFIG.');
+  const raw = process.env.GLOBAL_CONFIG ?? process.env.EDGE_CONFIG;
+  if (!raw) throw new Error('Falta la variable de entorno GLOBAL_CONFIG.');
   return createClient(raw);
 }
 
