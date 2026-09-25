@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convertidor SVG a STL</title>
+    <meta
+      name="description"
+      content="Convierte tus diseños de Silhouette Studio (SVG) en modelos 3D para impresión, pieza por pieza y color por color."
+    />
+  </head>
+  <body>
+    <!-- Pantalla de acceso -->
+    <div id="gate" class="gate">
+      <div class="card gate-card">
+        <div class="icon">🔐</div>
+        <h2>Acceso al curso</h2>
+        <p style="color: var(--ink-soft); font-size: 0.9rem">
+          Escribe el código de acceso que te compartió tu profesora.
+        </p>
+        <form id="gate-form">
+          <input
+            id="gate-code"
+            type="text"
+            placeholder="XXXXX-XXXXX"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            required
+          />
+          <button type="submit" id="gate-submit">Entrar</button>
+        </form>
+        <div id="gate-error" class="alert error hidden"></div>
+        <p class="gate-remember">Tu acceso se recordará en este navegador durante 30 días.</p>
+      </div>
+    </div>
+
+    <!-- App principal -->
+    <div id="app" class="wrap hidden">
+      <header class="top">
+        <h1>🧵➜🧊 Convertidor SVG a STL <span class="badge">impresión 3D</span></h1>
+        <div class="session-info">
+          <span id="session-label"></span>
+          <button class="link" id="logout-btn">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <div class="card">
+        <h2>1. Sube tu diseño</h2>
+        <p style="color: var(--ink-soft); font-size: 0.88rem; margin-top: -8px">
+          Expórtalo desde Silhouette Studio como SVG. Se procesa aquí mismo en tu navegador: tu diseño nunca se
+          sube a ningún servidor.
+        </p>
+        <label class="dropzone" id="dropzone" for="file-input">
+          <div>📄 Arrastra tu archivo <strong>.svg</strong> aquí, o toca para elegirlo</div>
+          <input id="file-input" type="file" accept=".svg,image/svg+xml" />
+        </label>
+        <div id="file-chosen" class="file-chosen hidden"></div>
+      </div>
+
+      <div class="card">
+        <h2>2. Medidas</h2>
+        <div class="fields">
+          <div class="field">
+            <label for="width-input">Ancho final</label>
+            <div class="input-suffix">
+              <input id="width-input" type="number" min="1" max="1000" step="0.1" value="80" />
+              <span>mm</span>
+            </div>
+            <div class="hint">El alto se calcula automáticamente para mantener la proporción.</div>
+          </div>
+          <div class="field">
+            <label for="thickness-input">Grosor</label>
+            <div class="input-suffix">
+              <input id="thickness-input" type="number" min="0.2" max="50" step="0.1" value="2" />
+              <span>mm</span>
+            </div>
+            <div class="hint">Mismo grosor para todas las piezas (no se apilan).</div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <button id="convert-btn">Convertir a 3D</button>
+        </div>
+        <div id="convert-error" class="alert error hidden"></div>
+      </div>
+
+      <div class="card hidden" id="result-card">
+        <h2>3. Vista previa y descarga</h2>
+        <div class="preview-panel">
+          <div class="viewer" id="viewer">
+            <div class="hint-drag">Arrastra para girar · rueda para acercar</div>
+          </div>
+          <div>
+            <div class="parts-summary" id="parts-summary"></div>
+            <div class="measurements-summary" id="measurements-summary"></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <button id="download-full-btn">⬇️ Descargar STL completo</button>
+          <button id="download-zip-btn" class="secondary">⬇️ Descargar ZIP por piezas/colores</button>
+        </div>
+      </div>
+
+      <footer class="foot">Hecho para el curso de impresión 3D · convierte, previsualiza y descarga sin salir del navegador</footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

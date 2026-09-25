@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administración de códigos · Convertidor SVG a STL</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body>
+    <div id="gate" class="gate">
+      <div class="card gate-card">
+        <div class="icon">🛠️</div>
+        <h2>Panel de administración</h2>
+        <form id="admin-gate-form">
+          <input id="admin-password" type="password" placeholder="Contraseña de administración" required />
+          <button type="submit" id="admin-gate-submit">Entrar</button>
+        </form>
+        <div id="admin-gate-error" class="alert error hidden"></div>
+      </div>
+    </div>
+
+    <div id="app" class="wrap hidden">
+      <header class="top">
+        <h1>🛠️ Administración de códigos</h1>
+        <div class="session-info">
+          <button class="link" id="admin-logout-btn">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <div class="card">
+        <h2>Generar un nuevo código</h2>
+        <form id="new-code-form" class="new-code-form">
+          <input id="new-code-label" type="text" placeholder="Nombre de la alumna (para identificarla)" required />
+          <button type="submit">➕ Generar código</button>
+        </form>
+        <div id="new-code-reveal" class="reveal-code hidden"></div>
+      </div>
+
+      <div class="card">
+        <h2>Códigos (<span id="codes-count">0</span>)</h2>
+        <div id="codes-error" class="alert error hidden"></div>
+        <div style="overflow-x: auto">
+          <table class="codes">
+            <thead>
+              <tr>
+                <th>Alumna</th>
+                <th>Estado</th>
+                <th>Creado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="codes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <footer class="foot">Los códigos nunca se muestran de nuevo tras generarlos: guárdalos ahora o usa "Reemplazar" si se pierden.</footer>
+    </div>
+
+    <script type="module" src="/src/admin.ts"></script>
+  </body>
+</html>
