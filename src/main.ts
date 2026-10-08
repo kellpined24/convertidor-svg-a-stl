@@ -4,6 +4,7 @@ import { InvalidMeasurementError } from './lib/scale';
 import { Preview3D } from './lib/preview3d';
 import { geometryToStlBlob, sanitizeFileName } from './lib/stlExport';
 import { buildPartsZip } from './lib/zipExport';
+import { initCalculator } from './calculator';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -62,7 +63,27 @@ function showApp(label: string) {
   app.classList.remove('hidden');
   sessionLabel.textContent = label ? `👋 ${label}` : '';
   if (!preview) preview = new Preview3D(viewer);
+  showTab(location.hash === '#calculadora' ? 'calc' : 'convert');
 }
+
+// --- Pestañas (convertidor / calculadora) ---
+
+type Tab = 'convert' | 'calc';
+
+function showTab(tab: Tab) {
+  for (const t of ['convert', 'calc'] as Tab[]) {
+    const on = t === tab;
+    $(`tab-${t}`).classList.toggle('hidden', !on);
+    $(`tab-btn-${t}`).setAttribute('aria-selected', String(on));
+  }
+  if (tab === 'calc') initCalculator();
+  // #calculadora permite compartir un enlace directo a la pestaña.
+  const hash = tab === 'calc' ? '#calculadora' : '';
+  if (location.hash !== hash) history.replaceState(null, '', location.pathname + location.search + hash);
+}
+
+$('tab-btn-convert').addEventListener('click', () => showTab('convert'));
+$('tab-btn-calc').addEventListener('click', () => showTab('calc'));
 
 function showGate() {
   app.classList.add('hidden');

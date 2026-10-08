@@ -52,6 +52,16 @@
         </div>
       </header>
 
+      <nav class="tabs" role="tablist" aria-label="Herramientas">
+        <button type="button" role="tab" class="tab" id="tab-btn-convert" aria-controls="tab-convert" aria-selected="true">
+          🧊 Convertidor SVG a STL
+        </button>
+        <button type="button" role="tab" class="tab" id="tab-btn-calc" aria-controls="tab-calc" aria-selected="false">
+          🧮 Calculadora de costos
+        </button>
+      </nav>
+
+      <section id="tab-convert" role="tabpanel" aria-labelledby="tab-btn-convert">
       <div class="card">
         <h2>1. Sube tu diseño</h2>
         <p style="color: var(--ink-soft); font-size: 0.88rem; margin-top: -8px">
@@ -107,8 +117,98 @@
           <button id="download-zip-btn" class="secondary">⬇️ Descargar ZIP por piezas/colores</button>
         </div>
       </div>
+      </section>
 
-      <footer class="foot">Hecho para el curso de impresión 3D · convierte, previsualiza y descarga sin salir del navegador</footer>
+      <section id="tab-calc" role="tabpanel" aria-labelledby="tab-btn-calc" class="hidden">
+        <p class="calc-intro">Mueve las barras o escribe tus números. Ya vienen con valores promedio.</p>
+        <div class="calc-grid">
+          <div>
+            <div class="card calc-card">
+              <div class="calc-ch">
+                <div class="calc-ico">
+                  <svg viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                </div>
+                <div>
+                  <h2>Tu producto</h2>
+                  <p>Ponle nombre para reconocer la cotización al copiarla, descargarla o guardarla.</p>
+                </div>
+              </div>
+              <label class="calc-label" for="calc-nombre">Nombre del producto</label>
+              <div class="calc-box">
+                <input id="calc-nombre" type="text" maxlength="80" autocomplete="off" placeholder="Ej.: Llavero autobús escolar" />
+              </div>
+            </div>
+
+            <div class="card calc-card">
+              <div class="calc-ch">
+                <div class="calc-ico">
+                  <svg viewBox="0 0 24 24"><path d="M3 12V3h9l9 9-9 9-9-9Z" /><circle cx="7.5" cy="7.5" r="1.2" /></svg>
+                </div>
+                <div>
+                  <h2>Moneda y atajos</h2>
+                  <p>Elige tu país y un punto de partida. Los precios se ajustan solos.</p>
+                </div>
+              </div>
+              <label class="calc-label" for="calc-moneda">País / moneda</label>
+              <select id="calc-moneda" class="calc-select"></select>
+              <div class="calc-cust" id="calc-cust">
+                <div><label for="calc-cSim">Símbolo</label><input id="calc-cSim" value="$" maxlength="5" /></div>
+                <div><label for="calc-cCod">Código</label><input id="calc-cCod" value="XXX" maxlength="5" /></div>
+                <div><label for="calc-cDec">Decimales</label><input id="calc-cDec" type="number" min="0" max="4" value="2" /></div>
+                <div><label for="calc-cRate">1 USD equivale a</label><input id="calc-cRate" type="number" min="0" step="any" value="1" /></div>
+              </div>
+              <div class="calc-cl">Tamaño de la pieza</div>
+              <div class="calc-chips" id="calc-chTam"></div>
+              <div class="calc-cl">Material</div>
+              <div class="calc-chips" id="calc-chMat"></div>
+              <div class="calc-cl">Tu impresora</div>
+              <div class="calc-chips" id="calc-chImp"></div>
+              <p class="calc-note">Los precios son aproximados y se convierten según la moneda. Ajústalos a lo que pagas tú.</p>
+            </div>
+
+            <div id="calc-secciones"></div>
+
+            <div class="calc-foot">
+              <button type="button" class="secondary" id="calc-reset">Restablecer</button>
+              <button type="button" id="calc-perfil">Guardar como mi perfil</button>
+            </div>
+          </div>
+
+          <div class="calc-sticky">
+            <div class="card calc-res">
+              <div class="calc-rh">
+                <div class="calc-prod hidden" id="calc-rNombre"></div>
+                <small>Precio de venta sugerido</small>
+                <div class="calc-big" id="calc-rPrecio">—</div>
+                <div class="calc-sub" id="calc-rUnit"></div>
+              </div>
+              <div class="calc-rb">
+                <div class="calc-kp">
+                  <div><span>Costo de producción</span><b id="calc-rCosto">—</b></div>
+                  <div><span>Tu ganancia neta</span><b id="calc-rGan">—</b></div>
+                </div>
+                <h3>Desglose de costos</h3>
+                <div id="calc-rows"></div>
+                <div class="calc-bar" id="calc-bar"></div>
+                <p class="calc-extra" id="calc-extra"></p>
+                <div class="calc-acts">
+                  <button type="button" class="secondary" id="calc-copiar">Copiar resumen</button>
+                  <button type="button" class="secondary" id="calc-guardar">Guardar cotización</button>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="calc-wide" id="calc-desc">Descargar cálculo</button>
+            <div class="card calc-card calc-hist-card">
+              <h2>Mis cotizaciones</h2>
+              <div id="calc-hist"></div>
+            </div>
+          </div>
+        </div>
+        <div class="calc-mbar"><span>Precio sugerido</span><b id="calc-mPrecio">—</b></div>
+        <div class="calc-toast" id="calc-toast" role="status" aria-live="polite"></div>
+      </section>
+
+      <footer class="foot">Hecho para el curso de impresión 3D · convierte, previsualiza, calcula y descarga sin salir del navegador</footer>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
