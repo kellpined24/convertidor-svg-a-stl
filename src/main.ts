@@ -196,8 +196,10 @@ function renderResult(result: ConversionResult) {
     partsSummary.appendChild(row);
   });
 
-  const m = result.measurements;
-  measurementsSummary.textContent = `${m.widthMM.toFixed(1)} × ${m.heightMM.toFixed(1)} × ${m.thicknessMM.toFixed(1)} mm · ${result.parts.length} pieza(s)/color(es)`;
+  // Se muestra el tamaño medido sobre la geometría final (lo mismo que verá el
+  // laminador), no el valor pedido en el formulario.
+  const m = result.modelSizeMM;
+  measurementsSummary.textContent = `${m.x.toFixed(1)} × ${m.y.toFixed(1)} × ${m.z.toFixed(1)} mm · ${result.parts.length} pieza(s)/color(es)`;
 }
 
 downloadFullBtn.addEventListener('click', () => {

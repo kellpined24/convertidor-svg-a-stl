@@ -90,13 +90,9 @@ export function convertSvgToStl(
 ): ConversionResult {
   validateSvgOrThrow(svgText);
 
-  const analysis = parseSvgString(svgText);
-  const measurements = computeMeasurements({
-    targetWidthMM,
-    thicknessMM,
-    svgWidthUnits: analysis.widthUnits,
-    svgHeightUnits: analysis.heightUnits,
-  });
+  // Valida ancho y grosor antes de generar geometría (el tamaño real del
+  // dibujo se mide más abajo).
+  computeMeasurements({ targetWidthMM, thicknessMM, svgWidthUnits: 1, svgHeightUnits: 1 });
 
   const loader = new SVGLoader();
   const result = loader.parse(svgText);
@@ -111,11 +107,13 @@ export function convertSvgToStl(
 
     for (const shape of shapes) {
       const geometry = new THREE.ExtrudeGeometry(shape, {
-        depth: measurements.thicknessMM,
+        depth: thicknessMM,
         bevelEnabled: false,
         curveSegments: 24,
       });
-      mirrorYInPlace(geometry, measurements.scale);
+      // Se genera en unidades SVG; la escala a mm se aplica cuando se conoce
+      // el tamaño real del dibujo.
+      mirrorYInPlace(geometry, 1);
 
       if (!byColor.has(colorKey)) byColor.set(colorKey, { colorKey, geometries: [] });
       byColor.get(colorKey)!.geometries.push(geometry);
@@ -132,8 +130,10 @@ export function convertSvgToStl(
     rawParts.push({ colorKey, color: new THREE.Color(colorKey), geometry: merged! });
   }
 
-  // Centra el modelo completo sobre el origen (X,Y) manteniendo la posición
-  // relativa entre piezas, y apoya la base en Z=0.
+  // El ancho pedido corresponde al dibujo, no al lienzo: Silhouette Studio
+  // exporta como viewBox la página completa, así que escalar según el viewBox
+  // deja el modelo mucho más pequeño. Se mide el contorno real de todas las
+  // piezas juntas y se escala a partir de él.
   const allGeoms = rawParts.map((p) => p.geometry);
   const combinedForBounds = mergeGeometries(
     allGeoms.map((g) => g.clone()),
@@ -141,12 +141,23 @@ export function convertSvgToStl(
   )!;
   combinedForBounds.computeBoundingBox();
   const bbox = combinedForBounds.boundingBox!;
+  const measurements = computeMeasurements({
+    targetWidthMM,
+    thicknessMM,
+    svgWidthUnits: bbox.max.x - bbox.min.x,
+    svgHeightUnits: bbox.max.y - bbox.min.y,
+  });
+
+  // Centra el modelo completo sobre el origen (X,Y) manteniendo la posición
+  // relativa entre piezas, apoya la base en Z=0 y escala X/Y a mm (Z ya está
+  // en mm).
   const offsetX = -(bbox.min.x + bbox.max.x) / 2;
   const offsetY = -(bbox.min.y + bbox.max.y) / 2;
   const offsetZ = -bbox.min.z;
 
   for (const g of allGeoms) {
     g.translate(offsetX, offsetY, offsetZ);
+    g.scale(measurements.scale, measurements.scale, 1);
   }
 
   const fullGeometry = mergeGeometries(
