@@ -18,12 +18,14 @@ export interface CostInput {
   comision: number; // comisión de plataforma (%)
   impuesto: number; // impuestos (%)
   multi: boolean; // multicolor: +20 % de filamento por purga
+  /** Costo de accesorios por pieza (argolla, switch de clicker…). */
+  accesorios?: number;
 }
 
 export interface CostResult {
   cant: number;
-  /** [filamento, electricidad, desgaste, fallos] para todas las piezas */
-  partes: [number, number, number, number];
+  /** [filamento, electricidad, desgaste, fallos, accesorios] para todas las piezas */
+  partes: [number, number, number, number, number];
   costo: number;
   comision: number;
   impuesto: number;
@@ -36,6 +38,7 @@ export const PARTES: ReadonlyArray<readonly [string, string]> = [
   ['Electricidad', '#ff9ec3'],
   ['Desgaste de la máquina', '#9c2a63'],
   ['Fallos', '#ff9b85'],
+  ['Accesorios', '#cf8b2c'],
 ];
 
 const pos = (v: number) => (Number.isFinite(v) ? Math.max(0, v) : 0);
@@ -51,7 +54,10 @@ export function computeCost(input: CostInput): CostResult {
   const luz = (v.watts / 1000) * v.horas * v.kwh;
   const des = v.impVida > 0 ? (v.impPrecio / v.impVida) * v.horas : 0;
   const fal = ((fil + luz + des) * v.fallos) / 100;
-  const partes = [fil, luz, des, fal].map((x) => x * cant) as CostResult['partes'];
+  // Los accesorios no entran en el margen de fallos: si la impresión sale
+  // mal no se gasta la argolla ni el switch.
+  const acc = v.accesorios ?? 0;
+  const partes = [fil, luz, des, fal, acc].map((x) => x * cant) as CostResult['partes'];
   const costo = partes.reduce((a, b) => a + b, 0);
 
   const com = Math.min(v.comision, 95) / 100;

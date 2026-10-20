@@ -52,6 +52,20 @@ describe('computeCost', () => {
     expect(r.ganancia).toBeCloseTo(r.costo * 0.6, 6);
   });
 
+  it('suma los accesorios al costo, sin margen de fallos, y les aplica la ganancia', () => {
+    const sin = computeCost(DEF);
+    const con = computeCost({ ...DEF, accesorios: 0.4 });
+    expect(con.partes[4]).toBeCloseTo(0.4, 6);
+    expect(con.partes[3]).toBeCloseTo(sin.partes[3], 6); // fallos no cambia
+    expect(con.costo).toBeCloseTo(sin.costo + 0.4, 6);
+    expect(con.precio).toBeCloseTo((sin.costo + 0.4) * 1.6, 6);
+  });
+
+  it('los accesorios se multiplican por la cantidad de piezas', () => {
+    const r = computeCost({ ...DEF, accesorios: 0.4, cant: 5 });
+    expect(r.partes[4]).toBeCloseTo(2, 6);
+  });
+
   it('tolera campos vacíos o negativos sin dar NaN', () => {
     const r = computeCost({ ...DEF, spoolKg: 0, impVida: 0, peso: -5, cant: 0, horas: NaN });
     expect(r.cant).toBe(1);

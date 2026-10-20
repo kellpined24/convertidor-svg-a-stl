@@ -205,7 +205,7 @@ button.link:hover:not(:disabled) {
   color: var(--accent-dark);
 }
 
-/* Pantalla de acceso con código */
+/* Pantalla de acceso con cÃ³digo */
 .gate {
   min-height: 100vh;
   display: flex;
@@ -452,7 +452,7 @@ footer.foot {
   display: none !important;
 }
 
-/* ---------- Pestañas ---------- */
+/* ---------- PestaÃ±as ---------- */
 .tabs {
   display: flex;
   gap: 6px;
@@ -808,6 +808,69 @@ footer.foot {
   color: var(--ink-soft);
   margin: 12px 0 0;
   line-height: 1.4;
+}
+.calc-acc-lista {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+.calc-acc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 100px 32px;
+  gap: 8px;
+  align-items: center;
+}
+.calc-acc-head span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.calc-acc-row .calc-box {
+  height: 40px;
+  padding: 0 10px;
+}
+input.calc-acc-nombre {
+  width: 100%;
+  height: 40px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  font: 600 0.88rem var(--font-body);
+  outline: none;
+}
+input.calc-acc-nombre:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+#tab-calc button.calc-acc-quitar {
+  background: none;
+  color: var(--ink-soft);
+  box-shadow: none;
+  padding: 4px;
+  font-size: 1.2rem;
+}
+#tab-calc button.calc-acc-quitar:hover:not(:disabled) {
+  color: var(--error);
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+@media (max-width: 520px) {
+  .calc-acc-head {
+    display: none;
+  }
+  .calc-acc-row {
+    grid-template-columns: minmax(0, 1fr) 100px 32px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .calc-acc-row .calc-acc-nombre {
+    grid-column: 1 / -1;
+  }
 }
 .calc-foot {
   display: flex;

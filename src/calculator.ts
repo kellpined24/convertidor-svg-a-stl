@@ -14,6 +14,7 @@ const ICON: Record<string, string> = {
     '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6Z"/>',
   box: '<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
   tag: '<path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  key: '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14.5 8.5l2 2"/>',
 };
 
 // [código, símbolo, nombre, decimales, cuánto vale 1 USD aprox.]
@@ -47,7 +48,7 @@ const REGION: Record<string, string> = {
   CA: 'CAD', EC: 'USD', SV: 'USD', US: 'USD',
 };
 
-type FieldId = Exclude<keyof CostInput, 'multi'>;
+type FieldId = Exclude<keyof CostInput, 'multi' | 'accesorios'>;
 interface Field {
   id: FieldId;
   l: string;
@@ -115,6 +116,21 @@ const IMPRESORAS: Atajo[] = [
   ['Media', 'Bambu / Prusa · ~100 W', { watts: 100, impPrecio: 450, impVida: 5000 }],
   ['Alta gama', 'Industrial · ~250 W', { watts: 250, impPrecio: 1500, impVida: 8000 }],
 ];
+
+// Accesorios que se compran aparte y se montan en la pieza.
+// precio: en la moneda elegida, por unidad; cant: unidades por pieza.
+interface Accesorio {
+  nombre: string;
+  precio: number;
+  cant: number;
+}
+// [nombre, precio aproximado en USD]
+const ACCESORIOS_RAPIDOS: [string, number][] = [
+  ['Argolla de llavero', 0.1],
+  ['Switch para clicker', 0.3],
+  ['Cadena / mosquetón', 0.25],
+];
+let accesorios: Accesorio[] = [];
 
 const KEY_ESTADO = 'calc3d.estado';
 const KEY_HIST = 'calc3d.historial';
@@ -204,6 +220,33 @@ function buildForm() {
     cont.appendChild(d);
   }
 
+  // Accesorios: va antes de "Precio de venta" (la última sección).
+  const acc = document.createElement('div');
+  acc.className = 'card calc-card';
+  acc.style.setProperty('--c', '#cf8b2c');
+  acc.innerHTML = `<div class="calc-ch"><div class="calc-ico"><svg viewBox="0 0 24 24">${ICON.key}</svg></div><div><h2>Accesorios</h2><p>Lo que compras aparte y montas en cada pieza: argollas, switches de clicker, cadenas…</p></div></div>
+    <div class="calc-chips" id="calc-accRapidos"></div>
+    <div id="calc-accLista" class="calc-acc-lista"></div>
+    <p class="calc-note" id="calc-accTotal"></p>
+    <p class="calc-note">Se suman al costo de cada pieza (no al margen de fallos). Los precios son aproximados: pon lo que te cuestan a ti.</p>`;
+  cont.insertBefore(acc, cont.lastElementChild);
+
+  const rapidos = $('accRapidos');
+  for (const [nm, usd] of ACCESORIOS_RAPIDOS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'calc-chip';
+    b.textContent = `+ ${nm}`;
+    b.onclick = () => agregarAccesorio(nm, nice(usd * rateAct));
+    rapidos.appendChild(b);
+  }
+  const otro = document.createElement('button');
+  otro.type = 'button';
+  otro.className = 'calc-chip';
+  otro.textContent = '+ Otro';
+  otro.onclick = () => agregarAccesorio('', 0, true);
+  rapidos.appendChild(otro);
+
   chips($('chTam'), TAMANOS);
   chips($('chMat'), MATERIALES);
   chips($('chImp'), IMPRESORAS);
@@ -253,9 +296,113 @@ function setSims() {
   document.querySelectorAll<HTMLElement>('#tab-calc [data-sim]').forEach((e) => (e.textContent = m.sim || m.cod));
 }
 
+// ---- accesorios
+
+const accPorPieza = () => accesorios.reduce((t, a) => t + Math.max(0, a.precio) * Math.max(0, a.cant), 0);
+
+function agregarAccesorio(nombre: string, precio: number, enfocar = false) {
+  // Si ya está en la lista, se suma una unidad más por pieza.
+  const existente = nombre ? accesorios.find((a) => a.nombre === nombre) : undefined;
+  if (existente) existente.cant += 1;
+  else accesorios.push({ nombre, precio, cant: 1 });
+  renderAccesorios();
+  calc();
+  if (enfocar) {
+    const inputs = document.querySelectorAll<HTMLInputElement>('#calc-accLista .calc-acc-nombre');
+    inputs[inputs.length - 1]?.focus();
+  }
+}
+
+function accInput(cls: string, value: string, label: string, numeric: boolean, onInput: (v: string) => void) {
+  const i = document.createElement('input');
+  i.className = cls;
+  i.value = value;
+  i.setAttribute('aria-label', label);
+  if (numeric) {
+    i.type = 'number';
+    i.min = '0';
+    i.step = 'any';
+    i.inputMode = 'decimal';
+  } else {
+    i.type = 'text';
+    i.maxLength = 60;
+    i.placeholder = 'Nombre del accesorio';
+  }
+  i.addEventListener('input', () => {
+    onInput(i.value);
+    calc();
+  });
+  return i;
+}
+
+function renderAccesorios() {
+  const lista = $('accLista');
+  lista.replaceChildren();
+  if (!accesorios.length) {
+    const v = document.createElement('div');
+    v.className = 'calc-vac';
+    v.textContent = 'Sin accesorios. Toca un botón de arriba para añadir uno.';
+    lista.appendChild(v);
+    return;
+  }
+  const head = document.createElement('div');
+  head.className = 'calc-acc-row calc-acc-head';
+  for (const t of ['Accesorio', 'Precio c/u', 'Por pieza', '']) {
+    const s = document.createElement('span');
+    s.textContent = t;
+    head.appendChild(s);
+  }
+  lista.appendChild(head);
+
+  accesorios.forEach((a, idx) => {
+    const row = document.createElement('div');
+    row.className = 'calc-acc-row';
+
+    const nombreIn = accInput('calc-acc-nombre', a.nombre, 'Nombre del accesorio', false, (v) => (a.nombre = v));
+
+    const precioBox = document.createElement('div');
+    precioBox.className = 'calc-box';
+    const pre = document.createElement('span');
+    pre.className = 'calc-pre';
+    pre.dataset.sim = '';
+    const m = mon();
+    pre.textContent = m.sim || m.cod;
+    precioBox.append(
+      pre,
+      accInput('', String(a.precio), `Precio de ${a.nombre || 'accesorio'}`, true, (v) => (a.precio = parseFloat(v) || 0)),
+    );
+
+    const cantBox = document.createElement('div');
+    cantBox.className = 'calc-box';
+    const cantIn = accInput('', String(a.cant), `Unidades por pieza de ${a.nombre || 'accesorio'}`, true, (v) => (a.cant = parseFloat(v) || 0));
+    cantIn.step = '1';
+    const suf = document.createElement('span');
+    suf.className = 'calc-suf';
+    suf.textContent = '/pza';
+    cantBox.append(cantIn, suf);
+
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'calc-acc-quitar';
+    x.textContent = '×';
+    x.title = 'Quitar';
+    x.setAttribute('aria-label', `Quitar ${a.nombre || 'accesorio'}`);
+    x.onclick = () => {
+      accesorios.splice(idx, 1);
+      renderAccesorios();
+      calc();
+    };
+
+    row.append(nombreIn, precioBox, cantBox, x);
+    lista.appendChild(row);
+  });
+}
+
 function aplicaMoneda(nuevo: number) {
   const viejo = rateAct;
   rateAct = nuevo;
+  for (const a of accesorios) a.precio = nice((a.precio / viejo) * nuevo);
+  if (iniciada) renderAccesorios();
   for (const f of FIELDS) {
     if (f.money) {
       const v = parseFloat(input(f.id).value) || 0;
@@ -272,8 +419,13 @@ const nombre = () => input('nombre').value.trim();
 
 function calc() {
   const values = Object.fromEntries(FIELDS.map((f) => [f.id, n(f.id)])) as Record<FieldId, number>;
-  const r = computeCost({ ...values, multi: input('multi').checked });
+  const acc = accPorPieza();
+  const r = computeCost({ ...values, multi: input('multi').checked, accesorios: acc });
   ultimo = r;
+
+  $('accTotal').textContent = acc
+    ? `Accesorios: ${fmt(acc)} por pieza` + (r.cant > 1 ? ` · ${fmt(r.partes[4])} en total (${r.cant} piezas)` : '')
+    : '';
 
   const rNombre = $('rNombre');
   rNombre.textContent = nombre();
@@ -290,6 +442,7 @@ function calc() {
   rows.replaceChildren();
   bar.replaceChildren();
   PARTES.forEach(([nm, col], i) => {
+    if (nm === 'Accesorios' && r.partes[i] === 0) return; // sólo si hay accesorios
     const p = r.costo > 0 ? r.partes[i] / r.costo : 0;
     const row = document.createElement('div');
     row.className = 'calc-row';
@@ -328,6 +481,7 @@ function guardarEstado() {
     cur: sel().value,
     rate: rateAct,
     multi: input('multi').checked,
+    accesorios,
     cust: { sim: input('cSim').value, cod: input('cCod').value, dec: input('cDec').value, rate: input('cRate').value },
     vals: valores(),
   });
@@ -336,9 +490,19 @@ function guardarEstado() {
 function resumen() {
   const u = ultimo!;
   const prod = nombre() ? `Producto: ${nombre()}\n` : '';
+  const usados = accesorios.filter((a) => a.precio > 0 && a.cant > 0);
+  const detalleAcc = usados.length
+    ? '\n' +
+      usados
+        .map((a) => `  · ${a.nombre || 'Accesorio'}: ${a.cant} × ${fmt(a.precio)} por pieza`)
+        .join('\n')
+    : '';
   return (
     `Cotización de impresión 3D\n${prod}Cantidad: ${u.cant}\n\n` +
-    PARTES.map((p, i) => `${p[0]}: ${fmt(u.partes[i])}`).join('\n') +
+    PARTES.map((p, i) => (p[0] === 'Accesorios' && !u.partes[i] ? '' : `${p[0]}: ${fmt(u.partes[i])}`))
+      .filter(Boolean)
+      .join('\n') +
+    detalleAcc +
     `\n\nCosto total: ${fmt(u.costo)}\nPrecio de venta: ${fmt(u.precio)}\nGanancia neta: ${fmt(u.ganancia)}`
   );
 }
@@ -452,11 +616,16 @@ function wire() {
     toast('Cotización guardada');
   };
   $('perfil').onclick = () => {
-    store.set(KEY_PERFIL, { rate: rateAct, vals: valores(), multi: input('multi').checked });
+    store.set(KEY_PERFIL, { rate: rateAct, vals: valores(), multi: input('multi').checked, accesorios });
     toast('Perfil guardado');
   };
   $('reset').onclick = () => {
-    const p = store.get<{ rate: number; vals: Record<string, string>; multi: boolean } | null>(KEY_PERFIL, null);
+    const p = store.get<{
+      rate: number;
+      vals: Record<string, string>;
+      multi: boolean;
+      accesorios?: Accesorio[];
+    } | null>(KEY_PERFIL, null);
     for (const f of FIELDS) {
       if (p && p.vals[f.id] !== undefined) {
         const v = parseFloat(p.vals[f.id]);
@@ -467,6 +636,8 @@ function wire() {
       paint(f);
     }
     input('multi').checked = p ? p.multi : false;
+    accesorios = (p?.accesorios ?? []).map((a) => ({ ...a, precio: nice((a.precio / p!.rate) * rateAct) }));
+    renderAccesorios();
     document.querySelectorAll('#tab-calc .calc-chip.on').forEach((c) => c.classList.remove('on'));
     calc();
     toast(p ? 'Valores de tu perfil' : 'Valores promedio');
@@ -482,6 +653,7 @@ export function initCalculator() {
 
   const s = store.get<{
     nombre?: string;
+    accesorios?: Accesorio[];
     cur: string;
     multi: boolean;
     cust?: { sim: string; cod: string; dec: string; rate: string };
@@ -510,6 +682,12 @@ export function initCalculator() {
     paint(f);
   }
   if (s) input('multi').checked = !!s.multi;
+  if (Array.isArray(s?.accesorios)) {
+    accesorios = s.accesorios
+      .filter((a) => a && typeof a.precio === 'number')
+      .map((a) => ({ nombre: String(a.nombre ?? ''), precio: a.precio, cant: Number(a.cant) || 0 }));
+  }
+  renderAccesorios();
   setSims();
   hist();
   calc();
